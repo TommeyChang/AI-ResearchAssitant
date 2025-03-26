@@ -1,4 +1,4 @@
-# ========= Copyright 2023-2024 @ CAMEL-AI.org. All Rights Reserved. =========
+# ========= All Rights Reserved. =========
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -10,7 +10,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ========= Copyright 2023-2024 @ CAMEL-AI.org. All Rights Reserved. =========
+# ========= All Rights Reserved. =========
 import multiprocessing
 import os
 
@@ -58,15 +58,13 @@ def generate_tasks(
         task = task.strip()
         if len(tasks) <= 5:
             continue
-        if str(start_idx) + '.' in task:
+        if str(start_idx) + "." in task:
             start_idx += 1
             filted_tasks.append(task)
         if start_idx > num_tasks:
             break
 
-    with open(
-        f"community/tasks/{'_'.join(role_names)}.txt", "w"
-    ) as file:
+    with open(f"community/tasks/{'_'.join(role_names)}.txt", "w") as file:
         file.write("\n".join(tasks))
 
 
@@ -78,22 +76,21 @@ def main(model=None) -> None:
         num_tasks=num_tasks
     ).from_role_files(
         user_role_names_path="./community/user_list.txt",
-        assistant_role_names_path="./community/assitant_list.txt"
+        assistant_role_names_path="./community/assitant_list.txt",
     )
 
     pool = multiprocessing.Pool()
 
     for task_generator_prompt, role_names in task_generator_prompt_generator:
-        if not os.path.exists(
-            f"community/tasks/{'_'.join(role_names)}.txt"
-        ):
+        if not os.path.exists(f"community/tasks/{'_'.join(role_names)}.txt"):
             print(f"Generating tasks for {role_names}")
-            generate_tasks(
+            pool.apply_async(
+                generate_tasks,
                 role_names,
-                    task_generator_prompt,
-                    start_idx,
-                    num_tasks,
-                    model,
+                task_generator_prompt,
+                start_idx,
+                num_tasks,
+                model,
             )
 
     pool.close()
@@ -102,8 +99,7 @@ def main(model=None) -> None:
 
 if __name__ == "__main__":
     model = ModelFactory.create(
-        model_platform=ModelPlatformType.DEEPSEEK,
-        model_type=ModelType.DEEPSEEK_CHAT
+        model_platform=ModelPlatformType.DEEPSEEK, model_type=ModelType.DEEPSEEK_CHAT
     )
-        
+
     main(model)
