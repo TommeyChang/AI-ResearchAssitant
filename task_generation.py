@@ -11,7 +11,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ========= All Rights Reserved. =========
-import multiprocessing
 import os
 
 from dotenv import load_dotenv
@@ -55,7 +54,7 @@ def generate_tasks(
 
     filted_tasks = []
     for task in tasks:
-        task = task.strip()
+        task = task.strip().strip('\n')
         if len(tasks) <= 5:
             continue
         if str(start_idx) + "." in task:
@@ -66,8 +65,6 @@ def generate_tasks(
 
     with open(f"community/tasks/{'_'.join(role_names)}.txt", "w") as file:
         file.write("\n".join(tasks))
-    
-    print("Task generate finish.")
 
 
 def main(model=None) -> None:
@@ -81,18 +78,17 @@ def main(model=None) -> None:
         assistant_role_names_path="./community/assitant_list.txt",
     )
 
-
     for task_generator_prompt, role_names in task_generator_prompt_generator:
         if not os.path.exists(f"community/tasks/{'_'.join(role_names)}.txt"):
             print(f"Generating tasks for {role_names}")
             generate_tasks(
-                    role_names,
-                    task_generator_prompt,
-                    start_idx,
-                    num_tasks,
-                    model,
-                )
-            
+                role_names,
+                task_generator_prompt,
+                start_idx,
+                num_tasks,
+                model,
+            )
+
 
 if __name__ == "__main__":
     model = ModelFactory.create(
