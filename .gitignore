@@ -3,3 +3,6 @@
 
 # tasks
 community/tasks/*
+
+# system files
+.DS_Store

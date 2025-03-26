@@ -92,7 +92,8 @@ def main(model=None) -> None:
 
 if __name__ == "__main__":
     model = ModelFactory.create(
-        model_platform=ModelPlatformType.DEEPSEEK, model_type=ModelType.DEEPSEEK_CHAT
+        model_platform=ModelPlatformType.DEEPSEEK, 
+        model_type=ModelType.DEEPSEEK_CHAT
     )
 
     main(model)
