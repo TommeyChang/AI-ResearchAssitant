@@ -86,11 +86,13 @@ def main(model=None) -> None:
             print(f"Generating tasks for {role_names}")
             pool.apply_async(
                 generate_tasks,
-                role_names,
-                task_generator_prompt,
-                start_idx,
-                num_tasks,
-                model,
+                (
+                    role_names,
+                    task_generator_prompt,
+                    start_idx,
+                    num_tasks,
+                    model,
+                ),
             )
 
     pool.close()
