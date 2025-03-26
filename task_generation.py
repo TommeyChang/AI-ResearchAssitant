@@ -14,20 +14,24 @@
 import multiprocessing
 import os
 
+from dotenv import load_dotenv
+
 from camel.agents import ChatAgent
 from camel.generators import (
     AISocietyTaskPromptGenerator,
     SystemMessageGenerator,
 )
 from camel.messages import BaseMessage
-from camel.types import RoleType, TaskType
+from camel.types import RoleType, TaskType, ModelPlatformType, ModelType
 from camel.models import ModelFactory
+
+load_dotenv()
 
 
 def generate_tasks(
     role_names: str,
     task_generator_prompt: str,
-    start_token: str = "1.",
+    start_idx: int = 1,
     num_tasks: int = 10,
     model=None,
 ) -> None:
@@ -49,45 +53,47 @@ def generate_tasks(
 
     tasks = assistant_response.msg.content.split("\n")
 
-    # Filter out the generated response to include the tasks only
-    for i, task in enumerate(tasks):
-        if start_token in task:
-            tasks = tasks[i : i + num_tasks]
+    filted_tasks = []
+    for task in tasks:
+        task = task.strip()
+        if len(tasks) <= 5:
+            continue
+        if str(start_idx) + '.' in task:
+            start_idx += 1
+            filted_tasks.append(task)
+        if start_idx > num_tasks:
             break
 
-    # Ensure exact number of tasks is generated
-    assert str(num_tasks) in tasks[-1], print(tasks)
-
     with open(
-        f"./ai_society_data/tasks/{'_'.join(role_names)}.txt", "w"
+        f"community/tasks/{'_'.join(role_names)}.txt", "w"
     ) as file:
         file.write("\n".join(tasks))
 
 
 def main(model=None) -> None:
-    num_tasks = 10
-    start_token = "1."
+    num_tasks = 6
+    start_idx = 1
 
     task_generator_prompt_generator = AISocietyTaskPromptGenerator(
         num_tasks=num_tasks
-    ).from_role_files()
+    ).from_role_files(
+        user_role_names_path="./community/user_list.txt",
+        assistant_role_names_path="./community/assitant_list.txt"
+    )
 
     pool = multiprocessing.Pool()
 
     for task_generator_prompt, role_names in task_generator_prompt_generator:
         if not os.path.exists(
-            f"./ai_society_data/tasks/{'_'.join(role_names)}.txt"
+            f"community/tasks/{'_'.join(role_names)}.txt"
         ):
             print(f"Generating tasks for {role_names}")
-            pool.apply_async(
-                generate_tasks,
-                (
-                    role_names,
+            generate_tasks(
+                role_names,
                     task_generator_prompt,
-                    start_token,
+                    start_idx,
                     num_tasks,
                     model,
-                ),
             )
 
     pool.close()
@@ -95,4 +101,9 @@ def main(model=None) -> None:
 
 
 if __name__ == "__main__":
-    main()
+    model = ModelFactory.create(
+        model_platform=ModelPlatformType.DEEPSEEK,
+        model_type=ModelType.DEEPSEEK_CHAT
+    )
+        
+    main(model)
