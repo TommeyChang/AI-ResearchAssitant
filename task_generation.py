@@ -66,10 +66,12 @@ def generate_tasks(
 
     with open(f"community/tasks/{'_'.join(role_names)}.txt", "w") as file:
         file.write("\n".join(tasks))
+    
+    print("Task generate finish.")
 
 
 def main(model=None) -> None:
-    num_tasks = 6
+    num_tasks = 10
     start_idx = 1
 
     task_generator_prompt_generator = AISocietyTaskPromptGenerator(
@@ -79,25 +81,18 @@ def main(model=None) -> None:
         assistant_role_names_path="./community/assitant_list.txt",
     )
 
-    pool = multiprocessing.Pool()
 
     for task_generator_prompt, role_names in task_generator_prompt_generator:
         if not os.path.exists(f"community/tasks/{'_'.join(role_names)}.txt"):
             print(f"Generating tasks for {role_names}")
-            pool.apply_async(
-                generate_tasks,
-                (
+            generate_tasks(
                     role_names,
                     task_generator_prompt,
                     start_idx,
                     num_tasks,
                     model,
-                ),
-            )
-
-    pool.close()
-    pool.join()
-
+                )
+            
 
 if __name__ == "__main__":
     model = ModelFactory.create(
